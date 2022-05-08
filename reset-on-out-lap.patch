@@ -1,0 +1,37 @@
+Index: src/iracing/ui/indyq/IndyQLogic.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/iracing/ui/indyq/IndyQLogic.java b/src/iracing/ui/indyq/IndyQLogic.java
+--- a/src/iracing/ui/indyq/IndyQLogic.java	
++++ b/src/iracing/ui/indyq/IndyQLogic.java	(date 1650242217405)
+@@ -43,6 +43,7 @@
+     void update(IndyQReadings r) {
+         if (state == BEFORE) {
+             if (r.track_surface == ON_TRACK) {
++                reset();
+                 state = OUT_LAP;
+                 start_lap = r.lap;
+             }
+@@ -104,11 +105,15 @@
+         }
+         if (r.track_surface == TrackLocation.IN_PIT_STALL) {
+             state = BEFORE;
+-            Arrays.fill(laps, 0.0f);
+-            Arrays.fill(mph, 0.0f);
+-            avg_mph = 0.0f;
+-            avg_lap_time = 0.0f;
+-        }
++//            reset();
++        }
++    }
++
++    private void reset() {
++        Arrays.fill(laps, 0.0f);
++        Arrays.fill(mph, 0.0f);
++        avg_mph = 0.0f;
++        avg_lap_time = 0.0f;
+     }
+ 
+     private float full_lap_mph(int i) {
