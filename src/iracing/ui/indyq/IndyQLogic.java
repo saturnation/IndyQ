@@ -2,19 +2,17 @@ package iracing.ui.indyq;
 
 import jirsdk.data.defines.TrackLocation;
 
-import java.util.Arrays;
-
 import static iracing.ui.indyq.IndyQLogic.Status.*;
 import static iracing.ui.indyq.IndyQLogic.TimeDisplay.*;
 import static jirsdk.data.defines.TrackLocation.ON_TRACK;
 
 public class IndyQLogic {
 
-    public float avg_lap_time;
-    int start_lap;
-    float[] laps = new float[4];
-    float[] mph = new float[4];
-    float avg_mph;
+    Data data;
+
+    public IndyQLogic(Data data) {
+        this.data = data;
+    }
 
     public enum Status {
         BEFORE,
@@ -44,80 +42,73 @@ public class IndyQLogic {
         if (state == BEFORE) {
             if (r.track_surface == ON_TRACK) {
                 state = OUT_LAP;
-                start_lap = r.lap;
+                data.start_lap = r.lap;
             }
         } else if (state == OUT_LAP) {
-            reset();
-            if (r.lap == start_lap + 1) {
+            data.reset();
+            if (r.lap == data.start_lap + 1) {
                 state = LAP1;
             }
         } else if (state == LAP1) {
-            mph[0] = percent_lap_mph(r);
-            if (r.lap == start_lap + 2) {
+            data.mph[0] = percent_lap_mph(r);
+            if (r.lap == data.start_lap + 2) {
                 state = LAP2;
-                laps[0] = r.lap_time;
+                data.laps[0] = r.lap_time;
             }
-            avg_mph = mph[0];
-            avg_lap_time = r.lap_time;
+            data.avg_mph = data.mph[0];
+            data.avg_lap_time = r.lap_time;
         } else if (state == LAP2) {
-            mph[1] = percent_lap_mph(r);
+            data.mph[1] = percent_lap_mph(r);
             if (update_last_lap(r)) {
-                laps[0] = r.last_lap_time;
-                mph[0] = full_lap_mph(0);
+                data.laps[0] = r.last_lap_time;
+                data.mph[0] = full_lap_mph(0);
             }
-            if (r.lap == start_lap + 3) {
+            if (r.lap == data.start_lap + 3) {
                 state = LAP3;
-                laps[1] = r.lap_time;
+                data.laps[1] = r.lap_time;
             }
-            avg_lap_time = (laps[0] + r.lap_time) / (1 + r.percent_lap);
-            avg_mph = (track_length_miles * (1 + r.percent_lap)) / ((laps[0] + r.lap_time) / 3600);
+            data.avg_lap_time = (data.laps[0] + r.lap_time) / (1 + r.percent_lap);
+            data.avg_mph = (track_length_miles * (1 + r.percent_lap)) / ((data.laps[0] + r.lap_time) / 3600);
         } else if (state == LAP3) {
-            mph[2] = percent_lap_mph(r);
+            data.mph[2] = percent_lap_mph(r);
             if (update_last_lap(r)) {
-                laps[1] = r.last_lap_time;
-                mph[1] = full_lap_mph(1);
+                data.laps[1] = r.last_lap_time;
+                data.mph[1] = full_lap_mph(1);
             }
-            if (r.lap == start_lap + 4) {
+            if (r.lap == data.start_lap + 4) {
                 state = LAP4;
-                laps[2] = r.lap_time;
+                data.laps[2] = r.lap_time;
             }
-            avg_lap_time = (laps[0] + laps[1] + r.lap_time) / (2 + r.percent_lap);
-            avg_mph = (track_length_miles * (2 + r.percent_lap)) / ((laps[0] + laps[1] + r.lap_time) / 3600);
+            data.avg_lap_time = (data.laps[0] + data.laps[1] + r.lap_time) / (2 + r.percent_lap);
+            data.avg_mph = (track_length_miles * (2 + r.percent_lap)) / ((data.laps[0] + data.laps[1] + r.lap_time) / 3600);
         } else if (state == LAP4) {
-            mph[3] = percent_lap_mph(r);
+            data.mph[3] = percent_lap_mph(r);
             if (update_last_lap(r)) {
-                laps[2] = r.last_lap_time;
-                mph[2] = full_lap_mph(2);
+                data.laps[2] = r.last_lap_time;
+                data.mph[2] = full_lap_mph(2);
             }
-            if (r.lap == start_lap + 5) {
+            if (r.lap == data.start_lap + 5) {
                 state = IN_LAP;
-                laps[3] = r.lap_time;
+                data.laps[3] = r.lap_time;
             }
-            avg_lap_time = (laps[0] + laps[1] + laps[2] + r.lap_time) / (3 + r.percent_lap);
-            avg_mph = (track_length_miles * (3 + r.percent_lap)) / ((laps[0] + laps[1] + laps[2] + r.lap_time) / 3600);
+            data.avg_lap_time = (data.laps[0] + data.laps[1] + data.laps[2] + r.lap_time) / (3 + r.percent_lap);
+            data.avg_mph = (track_length_miles * (3 + r.percent_lap)) / ((data.laps[0] + data.laps[1] + data.laps[2] + r.lap_time) / 3600);
         } else if (state == IN_LAP) {
             if (update_last_lap(r)) {
-                laps[3] = r.last_lap_time;
-                mph[3] = full_lap_mph(3);
-                avg_mph = (4 * track_length_miles) / ((laps[0] + laps[1] + laps[2] + laps[3]) / 3600);
-                avg_lap_time = (laps[0] + laps[1] + laps[2] + laps[3]) / 4;
+                data.laps[3] = r.last_lap_time;
+                data.mph[3] = full_lap_mph(3);
+                data.avg_mph = (4 * track_length_miles) / ((data.laps[0] + data.laps[1] + data.laps[2] + data.laps[3]) / 3600);
+                data.avg_lap_time = (data.laps[0] + data.laps[1] + data.laps[2] + data.laps[3]) / 4;
             }
         }
         if (r.track_surface == TrackLocation.IN_PIT_STALL) {
             state = BEFORE;
-//            reset();
         }
     }
 
-    private void reset() {
-        Arrays.fill(laps, 0.0f);
-        Arrays.fill(mph, 0.0f);
-        avg_mph = 0.0f;
-        avg_lap_time = 0.0f;
-    }
 
     private float full_lap_mph(int i) {
-        return track_length_miles / (laps[i] / 3600);
+        return track_length_miles / (data.laps[i] / 3600);
     }
 
     private float percent_lap_mph(IndyQReadings r) {

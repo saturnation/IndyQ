@@ -18,7 +18,8 @@ import static jirsdk.data.defines.TrackLocation.description;
 public class IndyQ extends JComponent {
 
     IndyQReadings indyQReadings = new IndyQReadings();
-    IndyQLogic logic = new IndyQLogic();
+    Data state = new Data();
+    IndyQLogic logic = new IndyQLogic(state);
 
     Timer t = new Timer(50, e -> update());
 
@@ -62,8 +63,8 @@ public class IndyQ extends JComponent {
             display_time(g, "2", 60, logic.timeDisplay(2), 1);
             display_time(g, "3", 80, logic.timeDisplay(3), 2);
             display_time(g, "4", 100, logic.timeDisplay(4), 3);
-            mph(g, Util.mph(logic.avg_mph), 120);
-            message(g, "Avg  : " + lap_time(logic.avg_lap_time), 120);
+            mph(g, Util.mph(state.avg_mph), 120);
+            message(g, "Avg  : " + lap_time(state.avg_lap_time), 120);
             message(g, description(indyQReadings.track_surface), 140);
             message(g, logic.description(), 160);
             message(g, "" + indyQReadings.percent_lap, 180);
@@ -83,10 +84,10 @@ public class IndyQ extends JComponent {
         switch (td) {
             case NO_TIME -> message(g, "Lap " + lap_name + ": 0.0", y);
             case ON_LAP -> message(g, "Lap " + lap_name + ": " + lap_time_short(indyQReadings.lap_time), y);
-            case LAP_COMPLETE -> message(g, "Lap " + lap_name + ": " + lap_time(logic.laps[i]), y);
+            case LAP_COMPLETE -> message(g, "Lap " + lap_name + ": " + lap_time(state.laps[i]), y);
         }
-        if (logic.mph[i] > 0.0f) {
-            mph(g, Util.mph(logic.mph[i]), y);
+        if (state.mph[i] > 0.0f) {
+            mph(g, Util.mph(state.mph[i]), y);
         }
     }
 
