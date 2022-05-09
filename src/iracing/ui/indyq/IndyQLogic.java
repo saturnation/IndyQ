@@ -9,6 +9,7 @@ import static jirsdk.data.defines.TrackLocation.ON_TRACK;
 public class IndyQLogic {
 
     Data data;
+    private boolean dump;
 
     public IndyQLogic(Data data) {
         this.data = data;
@@ -40,8 +41,9 @@ public class IndyQLogic {
 
     void update(IndyQReadings r) {
         if (state == BEFORE) {
-            if (data.avg_lap_time > 0.0) {
+            if (dump) {
                 CSV.dump(data);
+                dump = false;
             }
             if (r.track_surface == ON_TRACK) {
                 state = OUT_LAP;
@@ -97,6 +99,7 @@ public class IndyQLogic {
             data.avg_lap_time = (data.laps[0] + data.laps[1] + data.laps[2] + r.lap_time) / (3 + r.percent_lap);
             data.avg_mph = (track_length_miles * (3 + r.percent_lap)) / ((data.laps[0] + data.laps[1] + data.laps[2] + r.lap_time) / 3600);
         } else if (state == IN_LAP) {
+            dump = true;
             if (update_last_lap(r)) {
                 data.laps[3] = r.last_lap_time;
                 data.mph[3] = full_lap_mph(3);
