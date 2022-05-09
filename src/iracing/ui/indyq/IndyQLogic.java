@@ -40,6 +40,9 @@ public class IndyQLogic {
 
     void update(IndyQReadings r) {
         if (state == BEFORE) {
+            if (data.avg_lap_time > 0.0) {
+                CSV.dump(data);
+            }
             if (r.track_surface == ON_TRACK) {
                 state = OUT_LAP;
                 data.start_lap = r.lap;
